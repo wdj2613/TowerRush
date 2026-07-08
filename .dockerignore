@@ -1,0 +1,11 @@
+.git/
+.github/
+node_modules/
+*.md
+!README.md
+*.zip
+*.tar.*
+.env*
+Dockerfile
+.dockerignore
+docker-compose.yml
