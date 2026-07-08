@@ -133,17 +133,31 @@ The project uses classic `<script>` tags rather than ES modules, so it also work
 
 ## 🐳 Docker Deployment
 
-```bash
-# Build and run locally
-docker compose up -d
-# Visit http://localhost:8080
+**Option 1: Pull pre-built image (recommended)**
 
-# Or with plain Docker commands
-docker build -t towerrush .
-docker run -d -p 8080:80 towerrush
+```bash
+# Pull the pre-built image
+docker pull wdj2613/towerrush:latest
+docker run -d -p 8080:80 --name towerrush wdj2613/towerrush:latest
+
+# Or use docker compose (image specified in docker-compose.yml)
+docker compose up -d
 ```
 
-On push to `main`, a [GitHub Action](.github/workflows/docker-build.yml) automatically builds and pushes the image to DockerHub as `<DOCKERNAME>/towerrush:latest`.
+**Option 2: Build locally**
+
+```bash
+docker compose -f - up -d <<'EOF'
+services:
+  towerrush:
+    build: .
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+EOF
+```
+
+On push to `main`, a [GitHub Action](.github/workflows/docker-build.yml) automatically builds and pushes the image to `wdj2613/towerrush:latest`.
 
 ## Leaderboard and replays
 

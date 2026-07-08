@@ -139,17 +139,31 @@ python -m http.server 8080      # 然后访问 http://localhost:8080/
 
 ## 🐳 Docker 部署
 
-```bash
-# 本地构建并运行
-docker compose up -d
-# 访问 http://localhost:8080
+**方式一：拉取镜像运行（推荐）**
 
-# 或直接用 Docker 命令
-docker build -t towerrush .
-docker run -d -p 8080:80 towerrush
+```bash
+# 拉取预构建镜像
+docker pull wdj2613/towerrush:latest
+docker run -d -p 8080:80 --name towerrush wdj2613/towerrush:latest
+
+# 或用 docker compose（镜像已在 docker-compose.yml 中指定）
+docker compose up -d
 ```
 
-推送 `main` 分支时，[GitHub Action](.github/workflows/docker-build.yml) 自动构建镜像并推送至 DockerHub：`<DOCKERNAME>/towerrush:latest`。
+**方式二：本地构建**
+
+```bash
+docker compose -f - up -d <<'EOF'
+services:
+  towerrush:
+    build: .
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+EOF
+```
+
+推送 `main` 分支时，[GitHub Action](.github/workflows/docker-build.yml) 自动构建并推送镜像至 `wdj2613/towerrush:latest`。
 
 ## 🏆 排行榜与回放
 
