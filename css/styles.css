@@ -923,6 +923,9 @@
 
         @media (pointer: coarse) and (max-width: 1024px) {
 
+            body { overflow-y: auto; }
+            body.in-battle { overflow: hidden; }
+
             #game-wrapper { animation: none; transform: scale(var(--game-stage-scale)); transform-origin: var(--game-stage-origin, center center); align-self: var(--game-stage-align, auto); margin-top: var(--game-stage-margin-top, 0px); }
 
             #skill-rail, #settings-dock { left: -116px; width: 110px; }
@@ -932,7 +935,7 @@
 
             .screen { padding: 14px; gap: 12px; box-sizing: border-box; }
 
-            #selection-screen { padding: 14px 10px; gap: 10px; max-width: 96vw; max-height: 100vh; overflow-y: auto; }
+            #selection-screen { padding: 14px 10px; gap: 10px; max-width: 96vw; max-height: 100vh; max-height: 100dvh; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
             #selection-screen h1 { font-size: 1.2em; }
             #tower-pool { max-height: 300px; gap: 8px; padding: 8px; }
             .tower-card canvas { width: 40px; height: 40px; }
@@ -1029,7 +1032,7 @@
 
         /* Phone portrait - stack selection/map screens vertically */
         @media (pointer: coarse) and (max-width: 600px) {
-            #selection-screen { padding: 8px 6px; gap: 8px; max-height: 100vh; overflow-y: auto; }
+            #selection-screen { padding: 8px 6px; gap: 8px; max-height: 100vh; max-height: 100dvh; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
             #selection-screen h1 { font-size: 1em; margin: 0; }
             #selection-slots { gap: 4px; padding: 6px; }
             .slot { width: 40px; height: 40px; }
