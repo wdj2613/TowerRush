@@ -10,6 +10,40 @@ const startGameFromMapBtn = document.getElementById('start-game-from-map-btn');
 const backToTowerSelectBtn = document.getElementById('back-to-tower-select-btn');
 const mapListContainer = document.getElementById('map-list');
 
+let lastInfoCard = null;
+
+function renderTowerInfoHTML(data) {
+    let html = `<h4>${data.name}</h4><p>${data.description}</p>`;
+    if (data.limit) {
+        html += `<p style="margin-top: 10px; color: var(--primary-color); font-weight: bold;">限制放置: ${data.limit}</p>`;
+    }
+    if (data.exDescription) {
+        html += `<hr style="border-color: var(--border-color); margin: 10px 0;">`;
+        html += `<p style="color: gold; font-weight: bold;">EX特性: ${data.exDescription}</p>`;
+        if (data.exLimit && data.exLimit < 99) {
+            html += `<p style="color: #4dd0e1;">EX升级限制: ${data.exLimit}</p>`;
+        }
+    }
+    return html;
+}
+
+function showTowerInfoCard(cardEl, data) {
+    if (lastInfoCard === cardEl) return;
+    lastInfoCard = cardEl;
+    infoContainer.innerHTML = renderTowerInfoHTML(data);
+}
+
+function hideTowerInfoCard() {
+    lastInfoCard = null;
+    infoContainer.innerHTML = `<h4>防御塔信息</h4><p>请将鼠标悬停或点击下方的防御塔以查看详细介绍。</p>`;
+}
+
+document.addEventListener('click', (e) => {
+    if (lastInfoCard && !e.target.closest('.tower-card') && !e.target.closest('#selection-info')) {
+        hideTowerInfoCard();
+    }
+});
+
 function initializeSelectionScreen() {
     AudioDirector.playHome();
     poolContainer.innerHTML = '';
@@ -38,21 +72,16 @@ function initializeSelectionScreen() {
         const cardCtx = canvasEl.getContext('2d');
         tempTower.draw(cardCtx, 1);
 
-        card.addEventListener('click', () => handleTowerSelection(type));
-        card.addEventListener('mouseenter', () => {
-            let infoHTML = `<h4>${data.name}</h4><p>${data.description}</p>`;
-            if (data.limit) {
-                infoHTML += `<p style="margin-top: 10px; color: var(--primary-color); font-weight: bold;">限制放置: ${data.limit}</p>`;
+        card.addEventListener('click', (e) => {
+            handleTowerSelection(type);
+            if (lastInfoCard === card) {
+                hideTowerInfoCard();
+            } else {
+                showTowerInfoCard(card, data);
             }
-            if (data.exDescription) {
-                infoHTML += `<hr style="border-color: var(--border-color); margin: 10px 0;">`;
-                infoHTML += `<p style="color: gold; font-weight: bold;">EX特性: ${data.exDescription}</p>`;
-                if (data.exLimit && data.exLimit < 99) {
-                    infoHTML += `<p style="color: #4dd0e1;">EX升级限制: ${data.exLimit}</p>`;
-                }
-            }
-            infoContainer.innerHTML = infoHTML;
         });
+        card.addEventListener('mouseenter', () => showTowerInfoCard(card, data));
+        card.addEventListener('mouseleave', () => hideTowerInfoCard());
 
         poolContainer.appendChild(card);
     }

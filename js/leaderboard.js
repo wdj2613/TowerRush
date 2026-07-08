@@ -226,4 +226,4 @@ window.onload = () => {
     }
 };
 
-['pointerdown', 'keydown'].forEach(eventName => window.addEventListener(eventName, () => AudioDirector.unlock(), { passive: true }));
+['pointerdown', 'keydown', 'touchend'].forEach(eventName => window.addEventListener(eventName, () => AudioDirector.unlock(), { passive: true }));

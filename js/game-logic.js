@@ -1285,9 +1285,37 @@ function setupTowerButtons() {
 
         btn.onclick = () => selectTowerToPlace(type);
 
-        btn.onmouseenter = (e) => { tooltip.innerHTML = data.description; tooltip.style.display = 'block'; positionTooltip(e); };
-        btn.onmousemove = positionTooltip;
+        btn.onmouseenter = (e) => {
+            if (useMobilePerformanceProfile()) return;
+            tooltip.innerHTML = data.description;
+            tooltip.style.display = 'block';
+            positionTooltip(e);
+        };
+        btn.onmousemove = (e) => {
+            if (useMobilePerformanceProfile()) return;
+            positionTooltip(e);
+        };
         btn.onmouseleave = () => { tooltip.style.display = 'none'; };
+
+        let tooltipTimeout = null;
+        btn.addEventListener('touchstart', () => {
+            if (!useMobilePerformanceProfile()) return;
+            tooltipTimeout = setTimeout(() => {
+                tooltip.innerHTML = data.description;
+                tooltip.style.display = 'block';
+                const rect = btn.getBoundingClientRect();
+                tooltip.style.left = Math.max(12, rect.left + rect.width / 2 - 110) + 'px';
+                tooltip.style.top = (rect.top - 60) + 'px';
+            }, 500);
+        }, { passive: true });
+        btn.addEventListener('touchend', () => {
+            clearTimeout(tooltipTimeout);
+            tooltip.style.display = 'none';
+        });
+        btn.addEventListener('touchmove', () => {
+            clearTimeout(tooltipTimeout);
+            tooltip.style.display = 'none';
+        });
 
         towerButtonsList.appendChild(btn);
         towerButtonCache.push(btn);
@@ -1917,10 +1945,52 @@ function translateStat(stat) {
 }
 
 let mouse = { x: 0, y: 0 };
+let touchStartPos = null;
+let touchStartTime = 0;
+const TAP_THRESHOLD_PX = 10;
+const TAP_THRESHOLD_MS = 300;
+let touchWasTap = false;
+
 function getMousePos(canvas, evt) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; return { x: (evt.clientX - rect.left) * scaleX, y: (evt.clientY - rect.top) * scaleY }; }
-canvas.addEventListener('mousemove', e => { mouse = getMousePos(canvas, e); });
-canvas.addEventListener('touchstart', e => { if (e.touches && e.touches[0]) mouse = getMousePos(canvas, e.touches[0]); }, { passive: true });
-canvas.addEventListener('touchmove', e => { if (e.touches && e.touches[0]) mouse = getMousePos(canvas, e.touches[0]); }, { passive: true });
+canvas.addEventListener('mousemove', e => {
+    if (useMobilePerformanceProfile()) return;
+    mouse = getMousePos(canvas, e);
+});
+
+canvas.addEventListener('touchstart', e => {
+    if (e.touches && e.touches[0]) {
+        mouse = getMousePos(canvas, e.touches[0]);
+        touchStartPos = { x: mouse.x, y: mouse.y };
+        touchStartTime = Date.now();
+        touchWasTap = false;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+    if (e.touches && e.touches[0]) {
+        mouse = getMousePos(canvas, e.touches[0]);
+        if (touchStartPos) {
+            const dx = mouse.x - touchStartPos.x;
+            const dy = mouse.y - touchStartPos.y;
+            if (Math.hypot(dx, dy) > TAP_THRESHOLD_PX) {
+                touchWasTap = false;
+            }
+        }
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchend', e => {
+    const elapsed = Date.now() - touchStartTime;
+    if (touchStartPos && elapsed < TAP_THRESHOLD_MS) {
+        touchWasTap = true;
+    } else {
+        touchWasTap = false;
+    }
+    if (touchWasTap && e.changedTouches && e.changedTouches[0]) {
+        mouse = getMousePos(canvas, e.changedTouches[0]);
+        handleCanvasClickAt(mouse);
+    }
+}, { passive: true });
 function cancelTowerPlacementSelection() {
     if (!selectedTowerToPlace) return false;
     selectedTowerToPlace = null;
@@ -1982,8 +2052,7 @@ function placeTowerAtGrid(type, gridX, gridY, record = true) {
     return tower;
 }
 
-canvas.addEventListener('click', e => {
-    const pos = getMousePos(canvas, e);
+function handleCanvasClickAt(pos) {
     const gridX = Math.floor(pos.x / TILE_SIZE_NATIVE);
     const gridY = Math.floor(pos.y / TILE_SIZE_NATIVE);
 
@@ -2016,6 +2085,11 @@ canvas.addEventListener('click', e => {
         selectedPlacedTower = null;
         updateTowerInfoPanel();
     }
+}
+
+canvas.addEventListener('click', e => {
+    if (useMobilePerformanceProfile()) return;
+    handleCanvasClickAt(getMousePos(canvas, e));
 });
 
 function drawPlacementPreview() {
