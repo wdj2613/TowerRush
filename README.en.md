@@ -29,6 +29,7 @@
   <img alt="Python" src="https://img.shields.io/badge/Backend-Python_3_stdlib-ffd700?style=flat-square&logo=python&logoColor=white">
   <img alt="No build step" src="https://img.shields.io/badge/Build-none-2c2c2c?style=flat-square">
   <img alt="Runtime dependencies" src="https://img.shields.io/badge/Runtime_dependencies-0-2c2c2c?style=flat-square">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-nginx:alpine-2496ED?style=flat-square&logo=docker&logoColor=white">
 </p>
 
 ---
@@ -129,6 +130,20 @@ python -m http.server 8080
 ```
 
 The project uses classic `<script>` tags rather than ES modules, so it also works when opened directly with `file://`.
+
+## 🐳 Docker Deployment
+
+```bash
+# Build and run locally
+docker compose up -d
+# Visit http://localhost:8080
+
+# Or with plain Docker commands
+docker build -t towerrush .
+docker run -d -p 8080:80 towerrush
+```
+
+On push to `main`, a [GitHub Action](.github/workflows/docker-build.yml) automatically builds and pushes the image to DockerHub as `<DOCKERNAME>/towerrush:latest`.
 
 ## Leaderboard and replays
 
@@ -270,6 +285,11 @@ TowerRush/
 ├── server/                    # Leaderboard service and deployment config
 ├── scripts/server-setup.sh    # First-time server setup
 ├── scripts/deploy.sh          # One-command deployment/update
+├── Dockerfile                 # Docker image build
+├── docker-compose.yml         # Docker Compose local deployment
+├── .dockerignore
+├── .github/workflows/
+│   └── docker-build.yml       # GitHub Action auto build & push
 └── docs/index.html            # Project homepage; GitHub Pages compatible
 ```
 

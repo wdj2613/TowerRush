@@ -33,6 +33,7 @@
   <img alt="Python" src="https://img.shields.io/badge/Backend-Python_3_stdlib-ffd700?style=flat-square&logo=python&logoColor=white">
   <img alt="No build" src="https://img.shields.io/badge/构建-无需打包-2c2c2c?style=flat-square">
   <img alt="Dependencies" src="https://img.shields.io/badge/运行时依赖-0-2c2c2c?style=flat-square">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-nginx:alpine-2496ED?style=flat-square&logo=docker&logoColor=white">
 </p>
 
 ---
@@ -135,6 +136,20 @@ python -m http.server 8080      # 然后访问 http://localhost:8080/
 ```
 
 > 采用经典 `<script>`（非 ES Module），因此 `file://` 直接双击打开即可运行，无需服务器。
+
+## 🐳 Docker 部署
+
+```bash
+# 本地构建并运行
+docker compose up -d
+# 访问 http://localhost:8080
+
+# 或直接用 Docker 命令
+docker build -t towerrush .
+docker run -d -p 8080:80 towerrush
+```
+
+推送 `main` 分支时，[GitHub Action](.github/workflows/docker-build.yml) 自动构建镜像并推送至 DockerHub：`<DOCKERNAME>/towerrush:latest`。
 
 ## 🏆 排行榜与回放
 
@@ -294,6 +309,11 @@ TowerRush/
 ├─ scripts/
 │  ├─ server-setup.sh      # 服务器首次初始化
 │  └─ deploy.sh            # 本地一键部署 / 更新
+├─ Dockerfile              # Docker 镜像构建
+├─ docker-compose.yml      # Docker Compose 本地部署
+├─ .dockerignore
+├─ .github/workflows/
+│  └─ docker-build.yml     # GitHub Action 自动构建推送
 └─ docs/index.html         # 项目主页（GitHub Pages 可用）
 ```
 
