@@ -356,22 +356,6 @@ function update() {
     flushTowerInfo();
 }
 
-function updateDPSDisplays() {
-    const now = performance.now();
-    damageLog = damageLog.filter(log => now - log.timestamp < 1000);
-
-    const totalDps = damageLog.reduce((sum, log) => sum + log.amount, 0);
-    hpDisplay.textContent = `当前总DPS: ${totalDps.toFixed(2)}`;
-
-    if (selectedPlacedTower) {
-        const selectedDps = damageLog
-            .filter(log => log.towerId === selectedPlacedTower.id)
-            .reduce((sum, log) => sum + log.amount, 0);
-        waveDisplay.textContent = `该塔当前DPS: ${selectedDps.toFixed(2)}`;
-    } else {
-        waveDisplay.textContent = '该塔当前DPS: 等待选中';
-    }
-}
 function drawBackground() {
     bgCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
     bgCtx.lineCap = 'round';
@@ -852,9 +836,6 @@ function runSimulationFrame(timestamp, shouldDraw) {
     while (simulationAccumulator >= FIXED_TIMESTEP_MS && steps < MAX_SIMULATION_STEPS && !gameEnded) {
         frameCount++;
         update();
-        if (isTestMode && frameCount % UI_UPDATE_INTERVAL_FRAMES === 0) {
-            updateDPSDisplays();
-        }
         simulationAccumulator -= FIXED_TIMESTEP_MS;
         steps++;
     }
@@ -915,6 +896,8 @@ document.addEventListener('visibilitychange', () => {
 const moneyDisplay = document.getElementById('money-display');
 const hpDisplay = document.getElementById('hp-display');
 const waveDisplay = document.getElementById('wave-display');
+const damageStatsToggle = document.getElementById('damage-stats-toggle');
+const damageStatsList = document.getElementById('damage-stats-list');
 const towerSelectionDiv = document.getElementById('tower-selection');
 const floatingInfoPanel = document.getElementById('floating-info-panel');
 const tooltip = document.getElementById('tooltip');
@@ -942,6 +925,39 @@ function syncMatchControlVisibility() {
     abandonButton.hidden = hideRestartAndAbandon;
     pauseRow.classList.toggle('single-control', hideRestartAndAbandon);
     settingsRow.classList.toggle('single-control', hideRestartAndAbandon);
+}
+
+let _damageStatsOpen = false;
+function toggleDamageStats() {
+    _damageStatsOpen = !_damageStatsOpen;
+    damageStatsToggle.classList.toggle('open', _damageStatsOpen);
+    damageStatsToggle.innerHTML = _damageStatsOpen ? '武器伤害 ▾' : '武器伤害 ▸';
+    damageStatsList.classList.toggle('open', _damageStatsOpen);
+    if (_damageStatsOpen) updateDamageStatsList();
+}
+damageStatsToggle.addEventListener('click', toggleDamageStats);
+damageStatsToggle.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDamageStats(); }
+});
+
+function updateDamageStatsList() {
+    if (!_damageStatsOpen) return;
+    const entries = Object.entries(damageByType).filter(([, dmg]) => dmg > 0);
+    if (entries.length === 0) {
+        damageStatsList.innerHTML = '<div style="color:#888;padding:4px 6px;font-size:0.85em;">暂无伤害数据</div>';
+        return;
+    }
+    entries.sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((s, [, d]) => s + d, 0);
+    let html = '';
+    for (const [type, dmg] of entries) {
+        const name = TOWER_DATA[type]?.name || type;
+        const color = TOWER_DATA[type]?.color || '#aaa';
+        const pct = ((dmg / total) * 100).toFixed(1);
+        html += `<div class="dmg-row"><span class="dmg-name" style="color:${color}">${name}</span><span class="dmg-value">${Math.round(dmg).toLocaleString()} (${pct}%)</span></div>`;
+    }
+    html += `<div class="dmg-row" style="border-top:1px solid rgba(255,255,255,0.12);padding-top:3px;margin-top:2px;"><span style="color:#aaa">总计</span><span class="dmg-value">${Math.round(total).toLocaleString()}</span></div>`;
+    damageStatsList.innerHTML = html;
 }
 
 function syncPauseButton() {
@@ -1200,7 +1216,14 @@ function updateUI() {
         if (prevHp !== null && hp !== prevHp) flashStat(hpDisplay, hp < prevHp ? 'stat-loss' : 'stat-gain');
         if (prevWave !== null && wave !== prevWave) flashStat(waveDisplay, 'stat-gain');
         _uiPrev.hp = hp; _uiPrev.wave = wave;
+    } else {
+        const totalDps = damageLog.reduce((sum, log) => sum + log.amount, 0);
+        hpDisplay.textContent = `当前总DPS: ${totalDps.toFixed(2)}`;
+        waveDisplay.textContent = selectedPlacedTower
+            ? `该塔当前DPS: ${damageLog.filter(log => log.towerId === selectedPlacedTower.id).reduce((sum, log) => sum + log.amount, 0).toFixed(2)}`
+            : '该塔当前DPS: 等待选中';
     }
+    updateDamageStatsList();
     const buttons = towerButtonCache.length ? towerButtonCache : Array.from(document.querySelectorAll('.tower-btn'));
     buttons.forEach(btn => {
         const type = btn.dataset.type;
@@ -2144,6 +2167,12 @@ function resetGame() {
     uiDirty = true;
     towerInfoDirty = false;
     damageLog = [];
+    damageByType = {};
+    _damageStatsOpen = false;
+    damageStatsToggle.innerHTML = '武器伤害 ▸';
+    damageStatsToggle.classList.remove('open');
+    damageStatsList.classList.remove('open');
+    damageStatsList.innerHTML = '';
     beginMatchTracking();
 
     resizeCanvas();

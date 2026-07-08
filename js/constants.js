@@ -91,6 +91,7 @@ function getEnemyPathProgress(enemy) {
 
 let isTestMode = false;
 let damageLog = [];
+let damageByType = {};
 let moneyInterval = null;
 let skillUnlockSequence = 0;
 

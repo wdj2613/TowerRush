@@ -406,6 +406,47 @@
             font-size: 1.1em;
             font-weight: bold;
         }
+        .damage-stats-toggle {
+            font-size: 0.85em !important;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4px;
+            transition: color 0.2s;
+        }
+        .damage-stats-toggle:hover { color: #ffd48b; }
+        .damage-stats-toggle.open { color: #ffd48b; }
+        .damage-stats-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+            font-size: 0.82em;
+        }
+        .damage-stats-list.open { max-height: 600px; overflow-y: auto; }
+        .damage-stats-list .dmg-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 0 2px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .damage-stats-list .dmg-row:last-child { border-bottom: none; }
+        .damage-stats-list .dmg-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+        .damage-stats-list .dmg-value {
+            color: #ffd700;
+            font-weight: 700;
+            white-space: nowrap;
+            margin-left: 8px;
+            font-variant-numeric: tabular-nums;
+        }
         #tower-selection {
             display: flex;
             flex-direction: column;

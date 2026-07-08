@@ -344,6 +344,9 @@ class Enemy {
         }
         if (sourceTower && damageApplied > 0) {
             sourceTower.totalDamage = (sourceTower.totalDamage || 0) + damageApplied;
+            const type = sourceTower.type;
+            if (!damageByType[type]) damageByType[type] = 0;
+            damageByType[type] += damageApplied;
         }
                 if (this.type === 'boss') {
             const currentHpPercent = (this.hp / this.maxHp) * 100;
